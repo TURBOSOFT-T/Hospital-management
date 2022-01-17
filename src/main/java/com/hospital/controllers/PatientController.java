@@ -25,9 +25,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hospital.exceptions.ResourceNotFoundException;
+import com.hospital.models.Doctor;
 import com.hospital.models.Patient;
 import com.hospital.repositories.PatientRepository;
-import com.hospital.services.PatientService;
 
 /**
  * @author thoma
@@ -40,38 +40,42 @@ import com.hospital.services.PatientService;
 public class PatientController {
 	@Autowired
 	private PatientRepository patientRepository;
-	 //@Autowired
+	// @Autowired
 	// private PatientService patientService;
 
 	@GetMapping("/patients")
-	public List<Patient> getAllPatients(@RequestParam(required = false) String lastName) {
-
+	public ResponseEntity<List<Patient>> getAllPatients(@RequestParam(required = false) String lastName) {
 		try {
 			List<Patient> patients = new ArrayList<Patient>();
-			if (lastName == null)
+			if (lastName == null) {
 				patientRepository.findAll().forEach(patients::add);
-			else {
-				patientRepository.findByLastNameContaining(lastName).forEach(patients::add);
-			}
-			if (patients.isEmpty()) {
-				// return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-				return null;
-			}
-			// return new ResponseEntity<>(patients, HttpStatus.OK);
 
+			} else
+				patientRepository.findByLastNameContaining(lastName).forEach(patients::add);
+
+			if (patients.isEmpty()) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+
+			return new ResponseEntity<>(patients, HttpStatus.OK);
 		} catch (Exception e) {
+
 			// TODO: handle exception
-			// return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-			return null;
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+		
+		
+
+	}
+	@GetMapping("/patientss")
+	public List<Patient> getAllPatients() {
 		return patientRepository.findAll();
 	}
-
 	@GetMapping("/patients/{id}")
-	public ResponseEntity<Patient> getPatientById(@PathVariable(value = "id") Long patientId)
+	public ResponseEntity<Patient> getPatientById(@PathVariable(value = "id") Long id)
 			throws ResourceNotFoundException {
-		Patient patient = patientRepository.findById(patientId)
-				.orElseThrow(() -> new ResourceNotFoundException("Patient not found for this id :: " + patientId));
+		Patient patient = patientRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Patient not found for this id :: " + id));
 		return ResponseEntity.ok().body(patient);
 	}
 

@@ -3,6 +3,7 @@
  */
 package com.hospital.controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Map;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hospital.exceptions.ResourceNotFoundException;
@@ -40,8 +43,28 @@ public class DoctorCntroller {
 	private DoctorRepository doctorRepository;
 
 	@GetMapping("/doctors")
-	public List<Doctor> getAllDoctors() {
-		return doctorRepository.findAll();
+	public ResponseEntity<List<Doctor>> getAllDoctors(@RequestParam(required = false) String lastName) {
+		try {
+			List<Doctor> doctors = new ArrayList<Doctor>();
+			if (lastName == null) {
+				doctorRepository.findAll().forEach(doctors::add);
+
+			} else
+				doctorRepository.findByLastNameContaining(lastName).forEach(doctors::add);
+
+			if (doctors.isEmpty()) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+
+			return new ResponseEntity<>(doctors, HttpStatus.OK);
+		} catch (Exception e) {
+
+			// TODO: handle exception
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		
+
 	}
 
 	@GetMapping("/doctors/{id}")
